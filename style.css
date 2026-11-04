@@ -1,0 +1,109 @@
+:root {
+  --bg-1: #0f172a;
+  --bg-2: #1e293b;
+  --card: rgba(15, 23, 42, 0.65); /* Zoptymalizowane tło pod nagłówek/stopkę */
+  --glass: rgba(255, 255, 255, 0.08);
+  --primary: #8b5cf6;
+  --secondary: #f472b6;
+  --accent: #22d3ee;
+  --text: #f8fafc;
+  --muted: #cbd5e1;
+  --shadow: rgba(15, 23, 42, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; 
+  font-family: 'Playfair Display', Georgia, Cambria, "Times New Roman", Times, serif;
+  background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+  color: var(--text);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Dobrany kolor i styl dla nagłówka */
+header {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  width: 100%;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--glass);
+  backdrop-filter: blur(12px); /* Nowoczesny efekt rozmycia szkła w tle */
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4.5vw, 3.8rem);
+  line-height: 1.1;
+  background: linear-gradient(45deg, var(--text), var(--accent)); /* Efekt przejścia tonalnego w napisie */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Kontener rozciągający przestrzeń dla licznika */
+.main-content {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 40px 20px;
+}
+
+/* Licznik jest teraz ładnie rozciągnięty do max 1100px */
+section[data-odl-widget] {
+  width: 100%;
+  max-width: 1100px; 
+  margin: 0 auto;
+}
+
+iframe {
+  display: block;
+  border: 0;
+  border-radius: 20px;
+  width: 100%;
+  height: 480px; /* Zwiększona wysokość, aby widżet z odliczacz.pl idealnie pasował bez przewijania */
+  box-shadow: 0 20px 40px var(--shadow);
+}
+
+/* Dobrany kolor i styl dla stopki */
+footer {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 1.2rem 1rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+  width: 100%;
+  background-color: var(--card);
+  border-top: 1px solid var(--glass);
+  backdrop-filter: blur(12px);
+}
+
+footer p {
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 1.5rem 1rem;
+  }
+
+  .countdown {
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+  
+  .main-content {
+    padding: 20px 10px;
+  }
+}

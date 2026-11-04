@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Odliczanie do Osiemnastki</title>
+  </head>
+  <body>
+    <!-- Nagłówek na samej górze strony -->
+    <header>
+      <h1>Odliczanie do mojej osiemnastki</h1>
+    </header>
+
+    <!-- Główny kontener na rozciągnięty licznik -->
+    <div class="main-content">
+      <section data-odl-widget>
+        <iframe data-odl-embed src="https://odliczacz.pl/wydarzenie/CBxCaUwbNW/?embed=1&w=foto" loading="lazy" title="Moja Osiemnastka"></iframe>
+      </section>
+    </div>
+
+    <!-- Stopka na samym dole -->
+    <footer>
+        <p>&copy; Moja Osiemnastka <span id="year"></span> Wszelkie prawa zastrzeżone.</p>
+    </footer>
+
+    <!-- Skrypty wykonawcze -->
+    <script>(function(){if(window.odlEmbedResize)return;window.odlEmbedResize=1;window.addEventListener('message',function(e)
+    {if(!e.data||e.data.odl!=='odl-embed-wysokosc')return;var f=document.querySelectorAll('iframe[data-odl-embed]');for(var i=0;i<f.length;i++){if(f[i].contentWindow===e.source){f[i].style.height=e.data.wysokosc+"px";}}});})();</script>
+    <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  </body>
+</html>
