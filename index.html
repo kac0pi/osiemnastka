@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
+    <!-- Trik z wersją ?v=3, aby Opera na pewno pobrała nowy, dojebany wygląd ze style.css -->
+    <link rel="stylesheet" href="style.css?v=3" />
     <title>Odliczanie do Osiemnastki</title>
   </head>
   <body>
@@ -37,9 +38,9 @@
       </div>
     </div>
 
-    <!-- Muzyka (Własny odtwarzacz w stylu strony z włączonym AUTOPLAY) -->
+    <!-- Muzyka (Własny odtwarzacz w stylu strony) -->
     <div class="custom-audio-player">
-      <audio id="my-audio" autoplay>
+      <audio id="my-audio" loop>
         <source src="muzyka.mp3" type="audio/mpeg">
         Twoja przeglądarka nie obsługuje znacznika audio.
       </audio>
@@ -70,11 +71,9 @@
 
     <!-- Skrypty wykonawcze -->
     <script>
-      // Ustawienie roku w stopce
       document.getElementById("year").textContent = new Date().getFullYear();
 
       // --- LOGIKA WŁASNEGO LICZNIKA ---
-      // Data Twojej osiemnastki: 22 stycznia 2027, godzina 18:00
       const targetDate = new Date("January 22, 2027 18:00:00").getTime();
 
       function updateCountdown() {
@@ -86,25 +85,22 @@
           return;
         }
 
-        // Obliczenia czasu
         const d = Math.floor(difference / (1000 * 60 * 60 * 24));
         const h = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((difference % (1000 * 60)) / 1000);
 
-        // Wstrzykiwanie wartości do HTML
         document.getElementById("days").textContent = d;
         document.getElementById("hours").textContent = h < 10 ? "0" + h : h;
         document.getElementById("minutes").textContent = m < 10 ? "0" + m : m;
         document.getElementById("seconds").textContent = s < 10 ? "0" + s : s;
       }
 
-      // Aktualizacja licznika co sekundę
       setInterval(updateCountdown, 1000);
-      updateCountdown(); // wywołanie od razu na starcie
+      updateCountdown();
 
 
-      // --- LOGIKA ODTWARZACZA MUZYKI ---
+      // --- LOGIKA ODTWARZACZA MUZYKI + INTELIGENTNE AUTOPLAY ---
       const audio = document.getElementById('my-audio');
       const playBtn = document.getElementById('play-btn');
       const muteBtn = document.getElementById('mute-btn');
@@ -119,10 +115,29 @@
         return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
       }
 
-      // Ręczna obsługa przycisku Play / Pause
-      playBtn.addEventListener('click', () => {
+      // FUNKCJA: Próba odtworzenia muzyki przy pierwszym kliknięciu na stronę
+      function sprawdzAutoplay() {
         if (audio.paused) {
-          audio.play().catch(err => console.log("Autoplay zablokowane przez przeglądarkę"));
+          audio.play().then(() => {
+            playBtn.textContent = '⏸';
+            // Usuwamy nasłuchiwanie po pierwszym udanym starcie, by nie przerywać muzyki przy kolejnych kliknięciach
+            document.removeEventListener('click', sprawdzAutoplay);
+            document.removeEventListener('touchstart', sprawdzAutoplay);
+          }).catch(err => {
+            console.log("Przeglądarka nadal blokuje dźwięk, wymagane kliknięcie bezpośrednio w przycisk Play.");
+          });
+        }
+      }
+
+      // Nasłuchiwanie na jakiekolwiek kliknięcie w ekran, aby odpalić muzykę
+      document.addEventListener('click', sprawdzAutoplay);
+      document.addEventListener('touchstart', sprawdzAutoplay); // Obsługa ekranów dotykowych
+
+      // Ręczna obsługa przycisku Play / Pause
+      playBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Blokuje aktywację innych funkcji kliknięcia
+        if (audio.paused) {
+          audio.play();
           playBtn.textContent = '⏸';
         } else {
           audio.pause();
@@ -130,12 +145,6 @@
         }
       });
 
-      // Jeśli muzyka wystartuje sama (Autoplay zadziała), zmień ikonkę na pauzę od razu
-      audio.addEventListener('play', () => {
-        playBtn.textContent = '⏸';
-      });
-
-      // Aktualizacja czasu i paska przewijania podczas odtwarzania
       audio.addEventListener('timeupdate', () => {
         if (!isNaN(audio.duration)) {
           const progress = (audio.currentTime / audio.duration) * 100;
@@ -144,18 +153,15 @@
         }
       });
 
-      // Ładowanie pełnego czasu utworu
       audio.addEventListener('loadedmetadata', () => {
         durationLabel.textContent = formatTime(audio.duration);
       });
 
-      // Przewijanie utworu myszką/palcem
       seekSlider.addEventListener('input', () => {
         const seekTo = audio.duration * (seekSlider.value / 100);
         audio.currentTime = seekTo;
       });
 
-      // Zmiana głośności
       volumeSlider.addEventListener('input', () => {
         audio.volume = volumeSlider.value / 100;
         if (audio.volume === 0) {
@@ -168,8 +174,8 @@
         audio.muted = false;
       });
 
-      // Przycisk wyciszania
-      muteBtn.addEventListener('click', () => {
+      muteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         audio.muted = !audio.muted;
         if (audio.muted) {
           muteBtn.textContent = '🔇';
