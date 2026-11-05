@@ -14,9 +14,53 @@
 
     <!-- Główny kontener na rozciągnięty licznik -->
     <div class="main-content">
-      <section data-odl-widget>
-        <iframe data-odl-embed src="https://odliczacz.pl/wydarzenie/CBxCaUwbNW/?embed=1&w=foto" loading="lazy" title="Moja Osiemnastka"></iframe>
-      </section>
+      <div class="countdown-container">
+        <h2>Do 18 urodzin pozostało:</h2>
+        <div class="countdown-grid">
+          <div class="countdown-box">
+            <span id="days">--</span>
+            <p>Dni</p>
+          </div>
+          <div class="countdown-box">
+            <span id="hours">--</span>
+            <p>Godzin</p>
+          </div>
+          <div class="countdown-box">
+            <span id="minutes">--</span>
+            <p>Minut</p>
+          </div>
+          <div class="countdown-box">
+            <span id="seconds">--</span>
+            <p>Sekund</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Muzyka (Własny odtwarzacz w stylu strony z włączonym AUTOPLAY) -->
+    <div class="custom-audio-player">
+      <audio id="my-audio" autoplay>
+        <source src="muzyka.mp3" type="audio/mpeg">
+        Twoja przeglądarka nie obsługuje znacznika audio.
+      </audio>
+      
+      <div class="player-controls">
+        <!-- Przycisk Play/Pause -->
+        <button id="play-btn" class="player-btn" aria-label="Odtwarzaj">▶</button>
+        
+        <!-- Przewijanie utworu -->
+        <div class="timeline-container">
+          <span id="current-time">0:00</span>
+          <input type="range" id="seek-slider" min="0" max="100" value="0">
+          <span id="duration">0:00</span>
+        </div>
+        
+        <!-- Regulacja głośności -->
+        <div class="volume-container">
+          <button id="mute-btn" class="player-btn" aria-label="Wycisz">🔊</button>
+          <input type="range" id="volume-slider" min="0" max="100" value="80">
+        </div>
+      </div>
     </div>
 
     <!-- Stopka na samym dole -->
@@ -25,8 +69,116 @@
     </footer>
 
     <!-- Skrypty wykonawcze -->
-    <script>(function(){if(window.odlEmbedResize)return;window.odlEmbedResize=1;window.addEventListener('message',function(e)
-    {if(!e.data||e.data.odl!=='odl-embed-wysokosc')return;var f=document.querySelectorAll('iframe[data-odl-embed]');for(var i=0;i<f.length;i++){if(f[i].contentWindow===e.source){f[i].style.height=e.data.wysokosc+"px";}}});})();</script>
-    <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+    <script>
+      // Ustawienie roku w stopce
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      // --- LOGIKA WŁASNEGO LICZNIKA ---
+      // Data Twojej osiemnastki: 22 stycznia 2027, godzina 18:00
+      const targetDate = new Date("January 22, 2027 18:00:00").getTime();
+
+      function updateCountdown() {
+        const now = new Date().getTime();
+        const difference = targetDate - now;
+
+        if (difference < 0) {
+          document.querySelector(".countdown-container").innerHTML = "<h2>🎉 Już trwa! Wszystkiego najlepszego! 🎉</h2>";
+          return;
+        }
+
+        // Obliczenia czasu
+        const d = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const h = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((difference % (1000 * 60)) / 1000);
+
+        // Wstrzykiwanie wartości do HTML
+        document.getElementById("days").textContent = d;
+        document.getElementById("hours").textContent = h < 10 ? "0" + h : h;
+        document.getElementById("minutes").textContent = m < 10 ? "0" + m : m;
+        document.getElementById("seconds").textContent = s < 10 ? "0" + s : s;
+      }
+
+      // Aktualizacja licznika co sekundę
+      setInterval(updateCountdown, 1000);
+      updateCountdown(); // wywołanie od razu na starcie
+
+
+      // --- LOGIKA ODTWARZACZA MUZYKI ---
+      const audio = document.getElementById('my-audio');
+      const playBtn = document.getElementById('play-btn');
+      const muteBtn = document.getElementById('mute-btn');
+      const seekSlider = document.getElementById('seek-slider');
+      const volumeSlider = document.getElementById('volume-slider');
+      const currentTimeLabel = document.getElementById('current-time');
+      const durationLabel = document.getElementById('duration');
+
+      function formatTime(secs) {
+        const minutes = Math.floor(secs / 60);
+        const seconds = Math.floor(secs % 60);
+        return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+      }
+
+      // Ręczna obsługa przycisku Play / Pause
+      playBtn.addEventListener('click', () => {
+        if (audio.paused) {
+          audio.play().catch(err => console.log("Autoplay zablokowane przez przeglądarkę"));
+          playBtn.textContent = '⏸';
+        } else {
+          audio.pause();
+          playBtn.textContent = '▶';
+        }
+      });
+
+      // Jeśli muzyka wystartuje sama (Autoplay zadziała), zmień ikonkę na pauzę od razu
+      audio.addEventListener('play', () => {
+        playBtn.textContent = '⏸';
+      });
+
+      // Aktualizacja czasu i paska przewijania podczas odtwarzania
+      audio.addEventListener('timeupdate', () => {
+        if (!isNaN(audio.duration)) {
+          const progress = (audio.currentTime / audio.duration) * 100;
+          seekSlider.value = progress;
+          currentTimeLabel.textContent = formatTime(audio.currentTime);
+        }
+      });
+
+      // Ładowanie pełnego czasu utworu
+      audio.addEventListener('loadedmetadata', () => {
+        durationLabel.textContent = formatTime(audio.duration);
+      });
+
+      // Przewijanie utworu myszką/palcem
+      seekSlider.addEventListener('input', () => {
+        const seekTo = audio.duration * (seekSlider.value / 100);
+        audio.currentTime = seekTo;
+      });
+
+      // Zmiana głośności
+      volumeSlider.addEventListener('input', () => {
+        audio.volume = volumeSlider.value / 100;
+        if (audio.volume === 0) {
+          muteBtn.textContent = '🔇';
+        } else if (audio.volume < 0.5) {
+          muteBtn.textContent = '🔉';
+        } else {
+          muteBtn.textContent = '🔊';
+        }
+        audio.muted = false;
+      });
+
+      // Przycisk wyciszania
+      muteBtn.addEventListener('click', () => {
+        audio.muted = !audio.muted;
+        if (audio.muted) {
+          muteBtn.textContent = '🔇';
+          volumeSlider.value = 0;
+        } else {
+          muteBtn.textContent = audio.volume < 0.5 ? '🔉' : '🔊';
+          volumeSlider.value = audio.volume * 100;
+        }
+      });
+    </script>
   </body>
 </html>
